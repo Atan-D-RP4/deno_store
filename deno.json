@@ -3,7 +3,18 @@
     "dev": "deno run --watch main.ts"
   },
   "imports": {
+    "@oak/oak": "jsr:@oak/oak@^17.1.5",
+    "@types/bcrypt": "npm:@types/bcrypt@^6.0.0",
+    "@types/express": "npm:@types/express@^5.0.3",
+    "@types/jsonwebtoken": "npm:@types/jsonwebtoken@^9.0.10",
     "@types/node": "npm:@types/node@^24.1.0",
-    "@std/assert": "jsr:@std/assert@1"
+    "@std/assert": "jsr:@std/assert@1",
+    "bcrypt": "npm:bcrypt@^6.0.0",
+    "cookie-parser": "npm:cookie-parser@^1.4.7",
+    "express": "npm:express@^5.1.0",
+    "jsonwebtoken": "npm:jsonwebtoken@^9.0.2",
+    "mysql2": "npm:mysql2@^3.14.3",
+    "pg": "npm:pg@^8.16.3",
+    "zod": "npm:zod@^4.0.14"
   }
 }

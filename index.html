@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Secure Area</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 20px 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-details {
+            text-align: right;
+        }
+
+        .username {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-id {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .welcome-card h1 {
+            font-size: 32px;
+            margin-bottom: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .welcome-card p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert.success {
+            background: #efe;
+            color: #363;
+            border: 1px solid #cfc;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .user-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .welcome-card {
+                padding: 30px 20px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">🔐 SecureApp</div>
+            <div class="user-info">
+                <div class="user-details">
+                    <div class="username" id="username">Loading...</div>
+                    <div class="user-id" id="user-id">ID: --</div>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div id="alert" class="alert"></div>
+
+        <div class="loading show" id="loading">
+            <div class="spinner"></div>
+            <p>Loading your dashboard...</p>
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <div class="welcome-card">
+                <h1>Welcome to Your Dashboard</h1>
+                <p>You have successfully authenticated and can now access the protected content.</p>
+                <div class="card-stats">
+                    <div class="stat">
+                        <span class="stat-value" id="session-time">--</span>
+                        <span class="stat-label">Session Time</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">🔒</span>
+                        <span class="stat-label">Secure</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="user-email">--</span>
+                        <span class="stat-label">Email</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>🛡️ Security Status</h3>
+                    <p>Your session is secured with JWT tokens and server-side session management. All communications are protected.</p>
+                    <div class="card-stats">
+                        <div class="stat">
+                            <span class="stat-value">✅</span>
+                            <span class="stat-label">Protected</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">🔐</span>
+                            <span class="stat-label">Encrypted</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Dashboard Features</h3>
+                    <p>This is a fully functional authentication system built with TypeScript, Deno, and modern security practices.</p>
+                    <div class="card-stats">
+                        <div class="stat">
+                            <span class="stat-value">JWT</span>
+                            <span class="stat-label">Tokens</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">SQLite</span>
+                            <span class="stat-label">Database</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>⚡ Performance</h3>
+                    <p>Built with Deno and Oak framework for optimal performance and security. Session management is handled efficiently.</p>
+                    <div class="card-stats">
+                        <div class="stat">
+                            <span class="stat-value">Fast</span>
+                            <span class="stat-label">Loading</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">Secure</span>
+                            <span class="stat-label">Sessions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="refreshUserData()">Refresh Data</button>
+                <button class="btn btn-secondary" onclick="showUserInfo()">User Info</button>
+                <button class="btn btn-secondary" onclick="testAPI()">Test API</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let sessionStartTime = Date.now();
+        let userDataCache = null;
+
+        function showAlert(message, type = 'error') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type} show`;
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+
+        function updateSessionTime() {
+            const elapsed = Date.now() - sessionStartTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            document.getElementById('session-time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/me');
+                const result = await response.json();
+
+                if (result.success) {
+                    userDataCache = result.data;
+                    updateUI(result.data);
+                    document.getElementById('loading').classList.remove('show');
+                    document.getElementById('dashboard').style.display = 'block';
+                } else {
+                    throw new Error(result.error || 'Failed to load user data');
+                }
+            } catch (error) {
+                showAlert('Failed to load user data. Redirecting to login...');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+            }
+        }
+
+        function updateUI(userData) {
+            document.getElementById('username').textContent = userData.username;
+            document.getElementById('user-id').textContent = `ID: ${userData.id}`;
+            document.getElementById('user-email').textContent = userData.email;
+        }
+
+        async function handleLogout() {
+            try {
+                const response = await fetch('/api/logout', { method: 'POST' });
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Logged out successfully. Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 1000);
+                } else {
+                    throw new Error('Logout failed');
+                }
+            } catch (error) {
+                showAlert('Logout failed. Please try again.');
+            }
+        }
+
+        async function refreshUserData() {
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('dashboard').style.display = 'none';
+            await loadUserData();
+        }
+
+        function showUserInfo() {
+            if (userDataCache) {
+                const info = `
+User Information:
+• Username: ${userDataCache.username}
+• Email: ${userDataCache.email}
+• User ID: ${userDataCache.id}
+• Account Created: ${new Date(userDataCache.created_at).toLocaleString()}
+• Session Duration: ${document.getElementById('session-time').textContent}
+                `;
+                alert(info);
+            }
+        }
+
+        async function testAPI() {
+            try {
+                const response = await fetch('/api/me');
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('API test successful! Your session is valid.', 'success');
+                } else {
+                    showAlert('API test failed. Session may be invalid.');
+                }
+            } catch (error) {
+                showAlert('API test failed. Network error.');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserData();
+
+            // Update session time every second
+            setInterval(updateSessionTime, 1000);
+
+            // Handle page visibility change
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    // Refresh user data when page becomes visible
+                    refreshUserData();
+                }
+            });
+        });
+
+        // Handle browser back/forward
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                refreshUserData();
+            }
+        });
+    </script>
+</body>
+</html>
