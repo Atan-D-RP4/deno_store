@@ -1,0 +1,34 @@
+// =============================================================================
+// TYPES AND SCHEMAS
+// =============================================================================
+
+import { z } from "zod";
+
+export const LoginSchema = z.object({
+  username: z.string().min(3).max(50),
+  password: z.string().min(6).max(100),
+});
+
+export const RegisterSchema = z.object({
+  username: z.string().min(3).max(50),
+  password: z.string().min(6).max(100),
+  email: z.string().email(),
+});
+
+export type LoginRequest = z.infer<typeof LoginSchema>;
+export type RegisterRequest = z.infer<typeof RegisterSchema>;
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  password_hash: string;
+  created_at: string;
+}
+
+export interface Session {
+  id: string;
+  user_id: number;
+  created_at: string;
+  expires_at: string;
+}
