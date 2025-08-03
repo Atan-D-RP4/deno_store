@@ -1,14 +1,22 @@
 // =============================================================================
 // DATABASE ABSTRACTION
 // =============================================================================
-import { open } from "sqlite";
+import sqlite, { ISqlite, open } from "sqlite";
 import sqlite3 from "sqlite3";
 
-import { Session, User } from "./schema.ts";
+import { Order, Product, Session, User } from "./schema.ts";
+
+interface Transaction {
+  run: (sql: string, params?: any[]) => Promise<ISqlite.RunResult>; // Run a SQL command
+  begin: () => Promise<void>;
+  commit: () => Promise<void>;
+  rollback: () => Promise<void>;
+}
 
 export interface DatabaseAdapter {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
+  transaction(): Promise<Transaction>;
   createUser(
     username: string,
     email: string,
@@ -24,16 +32,27 @@ export interface DatabaseAdapter {
   getSession(sessionId: string): Promise<Session | null>;
   deleteSession(sessionId: string): Promise<void>;
   deleteExpiredSessions(): Promise<void>;
+  // TODO:
+  getAllProducts(): Promise<Product[]>;
+  getProductById(id: number): Promise<Product | null | undefined>;
+  createOrder(
+    userId: number,
+    items: { productId: number; quantity: number }[],
+  ): Promise<Order>;
+  getOrdersByUserId(userId: number): Promise<Order[]>;
 }
 
 export class SqliteAdapter implements DatabaseAdapter {
-  private db: any;
+  private db: sqlite.Database<sqlite3.Database, sqlite3.Statement>;
 
-  constructor(private dbPath: string = "./auth.db") {}
+  constructor(private dbPath: string = "./auth.db") {
+    this.db = {} as sqlite.Database<sqlite3.Database, sqlite3.Statement>;
+  }
 
   async connect(): Promise<void> {
     this.db = await open({ filename: this.dbPath, driver: sqlite3.Database });
-    await this.db.run(`
+
+    this.db.run(`
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
@@ -42,7 +61,8 @@ export class SqliteAdapter implements DatabaseAdapter {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    await this.db.run(`
+
+    this.db.run(`
       CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,
         user_id INTEGER NOT NULL,
@@ -51,16 +71,77 @@ export class SqliteAdapter implements DatabaseAdapter {
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
       )
     `);
-    await this.db.run(
+
+    this.db.run(
       `CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)`,
     );
-    await this.db.run(
+
+    this.db.run(
       `CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)`,
     );
+
+    await this.db.run(`
+      CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        price REAL NOT NULL,
+        stock_quantity INTEGER NOT NULL,
+        image_url TEXT
+      );
+    `);
+    await this.db.run(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        total_amount REAL NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      );
+    `);
+    await this.db.run(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        quantity INTEGER NOT NULL,
+        price REAL NOT NULL,
+        FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id)
+      );
+    `);
+    console.log("Connected to SQLite database:", this.db);
+
+    const count = await this.db.get(`SELECT COUNT(*) as count FROM products`);
+    if (count.count === 0) {
+      await this.db.run(
+        `INSERT INTO products (name, description, price, stock_quantity, image_url) VALUES (?, ?, ?, ?, ?)`,
+        ["Laptop", "High-performance laptop", 999.99, 10, null],
+      );
+      await this.db.run(
+        `INSERT INTO products (name, description, price, stock_quantity, image_url) VALUES (?, ?, ?, ?, ?)`,
+        ["Smartphone", "Latest model smartphone", 699.99, 20, null],
+      );
+      await this.db.run(
+        `INSERT INTO products (name, description, price, stock_quantity, image_url) VALUES (?, ?, ?, ?, ?)`,
+        ["Headphones", "Wireless headphones", 99.99, 50, null],
+      );
+    }
   }
 
   async disconnect(): Promise<void> {
     await this.db.close();
+  }
+
+  async transaction(): Promise<Transaction> {
+    const transaction: Transaction = {
+      run: (sql, params) => this.db.run(sql, params),
+      begin: () => this.db.exec("BEGIN TRANSACTION"),
+      commit: () => this.db.exec("COMMIT"),
+      rollback: () => this.db.exec("ROLLBACK"),
+    };
+    return transaction;
   }
 
   async createUser(
@@ -117,5 +198,45 @@ export class SqliteAdapter implements DatabaseAdapter {
     await this.db.run(
       `DELETE FROM sessions WHERE expires_at <= datetime('now')`,
     );
+  }
+
+  async getAllProducts(): Promise<Product[]> {
+    return await this.db.all(`SELECT * FROM products`);
+  }
+
+  async getProductById(id: number): Promise<Product | null | undefined> {
+    return await this.db.get(`SELECT * FROM products WHERE id = ?`, [id]);
+  }
+
+  async createOrder(
+    userId: number,
+    items: { productId: number; quantity: number }[],
+  ): Promise<Order> {
+    // TODO: Implement order creation logic
+    throw new Error("Method not implemented.");
+  }
+
+  async getOrderById(id: number): Promise<Order | null> {
+    const order = await this.db.get(`SELECT * FROM orders WHERE id = ?`, [id]);
+    if (!order) return null;
+    const items = await this.db.all(
+      `SELECT * FROM order_items WHERE order_id = ?`,
+      [id],
+    );
+    return { ...order, items };
+  }
+
+  async getOrdersByUserId(userId: number): Promise<Order[]> {
+    const orders = await this.db.all(`SELECT * FROM orders WHERE user_id = ?`, [
+      userId,
+    ]);
+    for (const order of orders) {
+      const items = await this.db.all(
+        `SELECT * FROM order_items WHERE order_id = ?`,
+        [order.id],
+      );
+      order.items = items;
+    }
+    return orders;
   }
 }

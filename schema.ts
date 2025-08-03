@@ -32,3 +32,29 @@ export interface Session {
   created_at: string;
   expires_at: string;
 }
+
+export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  stock_quantity: number;
+  image_url: string | null;
+}
+
+export interface Order {
+  id: number;
+  user_id: number;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  items: OrderItem[];
+}
+
+export interface OrderItem {
+  id: number;
+  order_id: number;
+  product_id: number;
+  quantity: number;
+  price: number;
+}

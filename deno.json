@@ -1,7 +1,7 @@
 {
   "nodeModulesDir": "auto",
   "tasks": {
-    "dev": "deno run --watch main.ts"
+    "dev": "deno run --allow-all --watch main.ts"
   },
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^17.1.5",

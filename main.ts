@@ -32,15 +32,19 @@ async function startServer() {
   setInterval(() => {
     sessionManager.cleanupExpiredSessions().catch(console.error);
   }, 60 * 60 * 1000);
+  const PORT = process.env.PORT || 8000;
 
   const app = express();
-  const route = express.Router();
+  const apiRoutes = express.Router();
+  const pageRoutes = express.Router();
+
   app.use(express.json());
   app.use(cookieParser());
   app.use(authMiddleware(authService));
+  app.use(express.static(path.join(__dirname, "public")));
 
   // API Routes
-  route.post("/register", async (req: Request, res: Response) => {
+  apiRoutes.post("/register", async (req: Request, res: Response) => {
     try {
       const data = RegisterSchema.parse(req.body);
       const result = await authService.register(data);
@@ -50,7 +54,7 @@ async function startServer() {
     }
   });
 
-  route.post("/login", async (req: Request, res: Response) => {
+  apiRoutes.post("/login", async (req: Request, res: Response) => {
     try {
       const data = LoginSchema.parse(req.body);
       const result = await authService.login(data);
@@ -69,7 +73,7 @@ async function startServer() {
     }
   });
 
-  route.post("/logout", (req: Request, res: Response) => {
+  apiRoutes.post("/logout", (req: Request, res: Response) => {
     const sessionId = req.sessionId;
     if (sessionId) {
       authService.logout(sessionId);
@@ -78,7 +82,7 @@ async function startServer() {
     res.json({ success: true });
   });
 
-  route.get("/me", requireAuth, (req: Request, res: Response) => {
+  apiRoutes.get("/me", requireAuth, (req: Request, res: Response) => {
     const user = req.user;
     res.json({
       success: true,
@@ -91,24 +95,84 @@ async function startServer() {
     });
   });
 
-  app.use('/api', route);
+  apiRoutes.get("/products", async (req: Request, res: Response) => {
+    const products = await db.getAllProducts();
+    res.json({ success: true, data: products });
+  });
+
+  apiRoutes.get("/products/:id", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const product = await db.getProductById(id);
+    if (product) {
+      res.json({ success: true, data: product });
+    } else {
+      res.status(404).json({ success: false, error: "Product not found" });
+    }
+  });
+
+  apiRoutes.post(
+    "/orders",
+    requireAuth,
+    async (req: Request, res: Response) => {
+      const { items } = req.body; // Expect [{ productId, quantity }]
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid order items",
+        });
+      }
+      const userId = req.user.id;
+      try {
+        const order = await db.createOrder(userId, items);
+        res.status(201).json({ success: true, data: order });
+      } catch (error) {
+        res.status(400).json({ success: false, error: error.message });
+      }
+    },
+  );
+
+  apiRoutes.get("/orders", requireAuth, async (req: Request, res: Response) => {
+    const userId = req.user.id;
+    const orders = await db.getOrdersByUserId(userId);
+    res.json({ success: true, data: orders });
+  });
+
   // Static file serving
-  app.get("/", requireAuth, (req: Request, res: Response) => {
+  pageRoutes.get("/", requireAuth, (req: Request, res: Response) => {
     res.redirect("/index.html");
   });
 
-  app.get("/index.html", requireAuth, (req: Request, res: Response) => {
+  pageRoutes.get("/index.html", requireAuth, (req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, "index.html"));
     console.log("User accessed index.html");
   });
 
-  app.get("/login.html", (req: Request, res: Response) => {
+  pageRoutes.get("/login.html", (req: Request, res: Response) => {
     if (req.user) {
       res.redirect("/index.html");
       return;
     }
     res.sendFile(path.join(__dirname, "login.html"));
   });
+
+  pageRoutes.get("/products.html", (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, "products.html"));
+  });
+
+  pageRoutes.get("/product.html", (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, "product.html"));
+  });
+
+  pageRoutes.get("/cart.html", (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, "cart.html"));
+  });
+
+  pageRoutes.get("/orders.html", requireAuth, (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, "orders.html"));
+  });
+
+  app.use("/", pageRoutes);
+  app.use("/api", apiRoutes);
 
   app.listen(8000, () => {
     console.log("🚀 Authentication server starting on http://localhost:8000");

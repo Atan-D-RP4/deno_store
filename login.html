@@ -1,179 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Secure Authentication</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            color: #333;
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .tabs {
-            display: flex;
-            margin-bottom: 30px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 4px;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            color: #666;
-        }
-
-        .tab.active {
-            background: white;
-            color: #333;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .alert.error {
-            background: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
-        }
-
-        .alert.success {
-            background: #efe;
-            color: #363;
-            border: 1px solid #cfc;
-        }
-
-        .form-section {
-            display: none;
-        }
-
-        .form-section.active {
-            display: block;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+    <!-- Meta tags for cross-browser & cross-platform compatibility -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description"
+        content="Secure login and registration page for accessing your dashboard. Sign in or sign up to get started.">
+    <meta name="keywords" content="login, registration, secure authentication, dashboard access">
+    <meta name="author" content="Your Name">
+    <meta name="robots" content="index, follow">
+    <meta name="google-site-verification" content="your-google-site-verification-code">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="mstile-150x150.png">
+    <meta name="apple-mobile-web-app-title" content="Secure Auth">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent ">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="mask-icon" href="safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hover.css/2.3.1/css/hover-min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/4.5.10-0/ionicons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Bootstrap -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel=" stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/login.css">
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -218,7 +80,8 @@
                 </div>
                 <div class="form-group">
                     <label for="register-password">Password</label>
-                    <input type="password" id="register-password" name="password" required minlength="6" maxlength="100">
+                    <input type="password" id="register-password" name="password" required minlength="6"
+                        maxlength="100">
                 </div>
                 <button type="submit" class="btn" id="register-btn">
                     <span class="btn-text">Sign Up</span>
@@ -227,122 +90,7 @@
         </div>
     </div>
 
-    <script>
-        function switchTab(tab) {
-            // Update tabs
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-
-            // Update forms
-            document.querySelectorAll('.form-section').forEach(f => f.classList.remove('active'));
-            document.getElementById(tab + '-form').classList.add('active');
-
-            // Clear alert
-            hideAlert();
-        }
-
-        function showAlert(message, type = 'error') {
-            const alert = document.getElementById('alert');
-            alert.textContent = message;
-            alert.className = `alert ${type}`;
-            alert.style.display = 'block';
-        }
-
-        function hideAlert() {
-            document.getElementById('alert').style.display = 'none';
-        }
-
-        function setLoading(button, loading) {
-            const btnText = button.querySelector('.btn-text');
-            if (loading) {
-                button.disabled = true;
-                btnText.innerHTML = '<span class="loading"></span>';
-            } else {
-                button.disabled = false;
-                btnText.textContent = button.id === 'login-btn' ? 'Sign In' : 'Sign Up';
-            }
-        }
-
-        async function handleLogin(event) {
-            event.preventDefault();
-            hideAlert();
-
-            const button = document.getElementById('login-btn');
-            setLoading(button, true);
-
-            const formData = new FormData(event.target);
-            const data = {
-                username: formData.get('username'),
-                password: formData.get('password')
-            };
-
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showAlert('Login successful! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/index.html';
-                    }, 1000);
-                } else {
-                    showAlert(result.error || 'Login failed');
-                }
-            } catch (error) {
-                showAlert('Network error. Please try again.');
-            } finally {
-                setLoading(button, false);
-            }
-        }
-
-        async function handleRegister(event) {
-            event.preventDefault();
-            hideAlert();
-
-            const button = document.getElementById('register-btn');
-            setLoading(button, true);
-
-            const formData = new FormData(event.target);
-            const data = {
-                username: formData.get('username'),
-                email: formData.get('email'),
-                password: formData.get('password')
-            };
-
-            const request = new Request('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            try {
-                const response = await fetch(request);
-                const result = await response.json();
-                console.log(request);
-                console.log(result);
-
-                if (result.success) {
-                    showAlert('Registration successful! You can now sign in.', 'success');
-                    setTimeout(() => {
-                        switchTab('login');
-                        document.getElementById('login-username').value = data.username;
-                    }, 1500);
-                } else {
-                    showAlert(result.error || 'Registration failed');
-                }
-            } catch (error) {
-                showAlert('Network error. Please try again.');
-            } finally {
-                setLoading(button, false);
-            }
-        }
-
-        // Auto-focus first input
-        document.getElementById('login-username').focus();
-    </script>
+    <script src="js/login.js"></script>
 </body>
+
 </html>
