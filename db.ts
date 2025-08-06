@@ -32,7 +32,9 @@ export interface DatabaseAdapter {
   getSession(sessionId: string): Promise<Session | null>;
   deleteSession(sessionId: string): Promise<void>;
   deleteExpiredSessions(): Promise<void>;
-  // TODO:
+  isTokenRevoked(jti: string): Promise<boolean>;
+  revokeToken(jti: string, expiresAt: Date): Promise<void>;
+  cleanupExpiredTokens(): Promise<void>;
   getAllProducts(): Promise<Product[]>;
   getProductById(id: number): Promise<Product | null | undefined>;
   createOrder(
@@ -72,6 +74,14 @@ export class SqliteAdapter implements DatabaseAdapter {
       )
     `);
 
+    await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS revoked_tokens (
+        jti TEXT PRIMARY KEY,
+        revoked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        expires_at DATETIME NOT NULL
+      );
+    `);
+
     this.db.run(
       `CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)`,
     );
@@ -79,6 +89,10 @@ export class SqliteAdapter implements DatabaseAdapter {
     this.db.run(
       `CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)`,
     );
+
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_revoked_tokens_expires ON revoked_tokens(expires_at);
+    `);
 
     await this.db.run(`
       CREATE TABLE IF NOT EXISTS products (
@@ -111,7 +125,6 @@ export class SqliteAdapter implements DatabaseAdapter {
         FOREIGN KEY (product_id) REFERENCES products (id)
       );
     `);
-    console.log("Connected to SQLite database:", this.db);
 
     const count = await this.db.get(`SELECT COUNT(*) as count FROM products`);
     if (count.count === 0) {
@@ -128,6 +141,7 @@ export class SqliteAdapter implements DatabaseAdapter {
         ["Headphones", "Wireless headphones", 99.99, 50, null],
       );
     }
+    console.log("Connected to SQLite database:", this.db);
   }
 
   async disconnect(): Promise<void> {
@@ -197,6 +211,28 @@ export class SqliteAdapter implements DatabaseAdapter {
   async deleteExpiredSessions(): Promise<void> {
     await this.db.run(
       `DELETE FROM sessions WHERE expires_at <= datetime('now')`,
+    );
+  }
+
+  async isTokenRevoked(jti: string): Promise<boolean> {
+    const row = await this.db.get(
+      `SELECT 1 FROM revoked_tokens WHERE jti = ? AND expires_at > datetime('now')`,
+      [jti],
+    );
+    return !!row;
+  }
+
+  async revokeToken(jti: string, expiresAt: Date): Promise<void> {
+    await this.db.run(
+      `INSERT OR REPLACE INTO revoked_tokens (jti, expires_at) VALUES (?, ?)`,
+      [jti, expiresAt.toISOString()],
+    );
+  }
+
+  async cleanupExpiredTokens(): Promise<void> {
+    await this.db.run(
+      "DELETE FROM revoked_tokens WHERE expires_at < ?",
+      [new Date()],
     );
   }
 
