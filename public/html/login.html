@@ -44,15 +44,15 @@
         </div>
 
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('login')">Sign In</div>
-            <div class="tab" onclick="switchTab('register')">Sign Up</div>
+            <div class="tab active">Sign In</div>
+            <div class="tab">Sign Up</div>
         </div>
 
         <div id="alert" class="alert"></div>
 
         <!-- Login Form -->
         <div id="login-form" class="form-section active">
-            <form onsubmit="handleLogin(event)">
+            <form>
                 <div class="form-group">
                     <label for="login-username">Username</label>
                     <input type="text" id="login-username" name="username" required>
@@ -69,7 +69,7 @@
 
         <!-- Register Form -->
         <div id="register-form" class="form-section">
-            <form onsubmit="handleRegister(event)">
+            <form>
                 <div class="form-group">
                     <label for="register-username">Username</label>
                     <input type="text" id="register-username" name="username" required minlength="3" maxlength="50">
@@ -90,7 +90,7 @@
         </div>
     </div>
 
-    <script src="js/login.js"></script>
+    <script type="module" src="js/login.js"></script>
 </body>
 
 </html>

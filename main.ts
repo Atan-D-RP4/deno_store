@@ -306,7 +306,7 @@ async function startServer() {
   });
 
   pageRoutes.get("/index.html", requireAuth, (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "index.html"));
+    res.sendFile(path.join(__dirname, "public", "html", "index.html"));
   });
 
   pageRoutes.get("/login.html", (req: Request, res: Response) => {
@@ -314,23 +314,23 @@ async function startServer() {
       res.redirect("/index.html");
       return;
     }
-    res.sendFile(path.join(__dirname, "login.html"));
+    res.sendFile(path.join(__dirname, "public", "html", "login.html"));
   });
 
   pageRoutes.get("/products.html", (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "products.html"));
+    res.sendFile(path.join(__dirname, "public", "html", "products.html"));
   });
 
   pageRoutes.get("/product.html", (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "product.html"));
+    res.sendFile(path.join(__dirname, "public", "html", "product.html"));
   });
 
   pageRoutes.get("/cart.html", (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "cart.html"));
-  });
+    res.sendFile(path.join(__dirname, "public", "html", "cart.html"));
+ });
 
   pageRoutes.get("/orders.html", requireAuth, (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "orders.html"));
+    res.sendFile(path.join(__dirname, "public", "html", "orders.html"));
   });
 
   // Mount routes

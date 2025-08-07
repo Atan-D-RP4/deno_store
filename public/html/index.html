@@ -32,6 +32,7 @@
     <!-- Bootstrap -->
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel=" stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/index.css">
     <title>Dashboard - Secure Area</title>
 
@@ -45,7 +46,7 @@
                     <div class="username" id="username">Loading...</div>
                     <div class="user-id" id="user-id">ID: --</div>
                 </div>
-                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                <button class="logout-btn" id="handle-logout">Logout</button>
             </div>
         </nav>
     </header>
@@ -126,13 +127,13 @@
             </div>
 
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="refreshUserData()">Refresh Data</button>
-                <button class="btn btn-secondary" onclick="showUserInfo()">User Info</button>
-                <button class="btn btn-secondary" onclick="testAPI()">Test API</button>
+                <button class="btn btn-primary" id="refresh-user-data">Refresh Data</button>
+                <button class="btn btn-secondary" id="show-user-info">User Info</button>
+                <button class="btn btn-secondary" id="test-api">Test API</button>
             </div>
         </div>
     </main>
 
-    <script src="js/index.js"></script>
+    <script type="module" src="js/index.js"></script>
 </body>
 </html>

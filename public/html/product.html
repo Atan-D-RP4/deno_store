@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <header class="header">
+    <nav class="nav">
+      <a href="/" class="logo">Deno Store</a>
+      <div class="user-info">
+        <div class="user-details">
+          <span class="username"></span>
+          <span class="user-id"></span>
+        </div>
+        <button class="logout-btn" id="handle-logout">Logout</button>
+      </div>
+    </nav>
+  </header>
+  <div class="container">
+    <div class="welcome-card">
+      <h1 id="product-name"></h1>
+    </div>
+    <div class="card">
+      <p id="product-description"></p>
+      <p id="product-price"></p>
+      <div class="action-buttons">
+        <button id="add-to-cart" class="btn btn-primary">Add to Cart</button>
+        <a href="/products.html" class="btn btn-secondary">Back to Products</a>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/product.js"></script>
+</body>
+
+</html>
