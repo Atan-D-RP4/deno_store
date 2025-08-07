@@ -33,6 +33,7 @@ declare global {
       sessionId?: string;
       accessToken?: string;
       authType?: "session" | "jwt";
+      roles?: "user" | "admin" | "guest"[]; // Optional roles for authorization
     }
   }
 }
@@ -306,7 +307,6 @@ async function startServer() {
 
   pageRoutes.get("/index.html", requireAuth, (req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, "index.html"));
-    console.log("User accessed index.html");
   });
 
   pageRoutes.get("/login.html", (req: Request, res: Response) => {
