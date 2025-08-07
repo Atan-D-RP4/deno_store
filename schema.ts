@@ -24,7 +24,7 @@ export interface User {
   email: string;
   password_hash: string;
   created_at: string;
-  roles: "user" | "admin" | "guest"[];
+  role: "user" | "admin" | "guest"[];
 }
 
 export interface Session {
@@ -41,6 +41,20 @@ export interface Product {
   price: number;
   stock_quantity: number;
   image_url: string | null;
+}
+
+export interface Cart {
+  id: number;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+  items: CartItem[];
+}
+
+export interface CartItem {
+  productId: number;
+  quantity: number;
+  product?: Product;
 }
 
 export interface Order {

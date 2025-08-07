@@ -127,6 +127,7 @@ async function startServer() {
         username: user.username,
         email: user.email,
         created_at: user.created_at,
+        role: user.role || "guest", // Default to guest if no role
       },
     });
   });
@@ -296,45 +297,46 @@ async function startServer() {
     res.json({ success: true, data: orders });
   });
 
-  // =============================================================================
-  // WEB PAGES (Session-based)
-  // =============================================================================
-
-  // Static file serving
-  pageRoutes.get("/", requireAuth, (req: Request, res: Response) => {
-    res.redirect("/index.html");
-  });
-
-  pageRoutes.get("/index.html", requireAuth, (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "public", "html", "index.html"));
-  });
-
-  pageRoutes.get("/login.html", (req: Request, res: Response) => {
-    if (req.user) {
-      res.redirect("/index.html");
-      return;
-    }
-    res.sendFile(path.join(__dirname, "public", "html", "login.html"));
-  });
-
-  pageRoutes.get("/products.html", (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "public", "html", "products.html"));
-  });
-
-  pageRoutes.get("/product.html", (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "public", "html", "product.html"));
-  });
-
-  pageRoutes.get("/cart.html", (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "public", "html", "cart.html"));
- });
-
-  pageRoutes.get("/orders.html", requireAuth, (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "public", "html", "orders.html"));
-  });
-
+ //  // =============================================================================
+ //  // WEB PAGES (Session-based)
+ //  // =============================================================================
+ //
+ //  // Static file serving
+ //  pageRoutes.get("/", requireAuth, (req: Request, res: Response) => {
+ //    res.redirect("/index.html");
+ //  });
+ //
+ //  pageRoutes.get("/index.html", requireAuth, (req: Request, res: Response) => {
+ //    res.sendFile(path.join(__dirname, "public", "html", "index.html"));
+ //  });
+ //
+ //  pageRoutes.get("/login.html", (req: Request, res: Response) => {
+ //    if (req.user) {
+ //      res.redirect("/index.html");
+ //      return;
+ //    }
+ //    res.sendFile(path.join(__dirname, "public", "html", "login.html"));
+ //  });
+ //
+ //  pageRoutes.get("/products.html", (req: Request, res: Response) => {
+ //    res.sendFile(path.join(__dirname, "public", "html", "products.html"));
+ //  });
+ //
+ //  pageRoutes.get("/product.html", (req: Request, res: Response) => {
+ //    res.sendFile(path.join(__dirname, "public", "html", "product.html"));
+ //  });
+ //
+ //  pageRoutes.get("/cart.html", (req: Request, res: Response) => {
+ //    res.sendFile(path.join(__dirname, "public", "html", "cart.html"));
+ // });
+ //
+ //  pageRoutes.get("/orders.html", requireAuth, (req: Request, res: Response) => {
+ //    res.sendFile(path.join(__dirname, "public", "html", "orders.html"));
+ //  });
+ //
   // Mount routes
-  app.use("/", pageRoutes);
+  // app.use("/", pageRoutes);
+
   app.use("/api", apiRoutes);
   app.use("/api/mobile", mobileApiRoutes); // JWT-only routes for mobile
 

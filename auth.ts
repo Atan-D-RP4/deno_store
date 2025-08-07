@@ -32,7 +32,7 @@ export class JWTService {
       {
         userId: user.id,
         username: user.username,
-        roles: user.roles || [],
+        roles: user.role || [],
         jti: tokenId,
       },
       this.secretKey,
@@ -355,7 +355,7 @@ export function microserviceAuthMiddleware(jwtService: JWTService) {
     req.user = {
       id: payload.userId,
       username: payload.username,
-      roles: payload.roles,
+      role: payload.roles,
     };
 
     next();

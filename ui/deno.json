@@ -1,16 +1,40 @@
 {
   "compilerOptions": {
+    "target": "ES2017",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": "./*",
+      "@/components/*": ["components/*"]
     },
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "strict": true,
-    "tsx": "react"
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": true,
+    "incremental": true,
+    "module": "esnext",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "plugins": [
+      { "name": "next" }
+    ]
   },
+
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+
   "tasks": {
     "dev": "deno run -A --unstable-detect-cjs npm:next@latest dev",
     "build": "deno run -A --unstable-detect-cjs npm:next@latest build",
@@ -24,6 +48,9 @@
     "next": "npm:next@^15.4.6",
     "react": "npm:react@^19.1.1",
     "react-dom": "npm:react-dom@^19.1.1",
-    "tailwindcss": "npm:tailwindcss@^4.1.11"
+    "tailwindcss": "npm:tailwindcss@^4.1.11",
+
+    "@/components/": "./components/",
+    "@/*": "./*"
   }
 }
