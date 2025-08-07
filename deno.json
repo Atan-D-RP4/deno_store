@@ -1,5 +1,10 @@
 {
+  "unstable": [
+    "unsafe-proto",
+    "sloppy-imports"
+  ],
   "nodeModulesDir": "auto",
+  "workspace": ["./ui/"],
   "tasks": {
     "dev": "deno run --allow-all --watch main.ts"
   },
