@@ -1,181 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { randomUUID } from "node:crypto";
+
 import { LoginRequest, RegisterRequest, User } from "./schema.ts";
 import { DatabaseAdapter } from "./db.ts";
-
-// =============================================================================
-// JWT SERVICE
-// =============================================================================
-export interface JWTPayload {
-  userId: number;
-  username: string;
-  roles?: "user" | "admin" | "guest"[]; // Optional roles for authorization
-  iat: number;
-  exp: number;
-  jti?: string; // JWT ID for revocation
-}
-
-export class JWTService {
-  constructor(
-    private secretKey: string,
-    private refreshSecretKey: string,
-    private db: DatabaseAdapter,
-  ) {}
-
-  generateTokens(user: User): { accessToken: string; refreshToken: string } {
-    const tokenId = randomUUID();
-
-    // Short-lived access token (15 minutes)
-    const accessToken = jwt.sign(
-      {
-        userId: user.id,
-        username: user.username,
-        roles: user.role || [],
-        jti: tokenId,
-      },
-      this.secretKey,
-      { expiresIn: "15m" },
-    );
-
-    // Long-lived refresh token (7 days)
-    const refreshToken = jwt.sign(
-      {
-        userId: user.id,
-        jti: tokenId,
-      },
-      this.refreshSecretKey,
-      { expiresIn: "7d" },
-    );
-
-    return { accessToken, refreshToken };
-  }
-
-  verifyAccessToken(token: string): JWTPayload | null {
-    try {
-      return jwt.verify(token, this.secretKey) as JWTPayload;
-    } catch {
-      return null;
-    }
-  }
-
-  verifyRefreshToken(token: string): { userId: number; jti: string } | null {
-    try {
-      return jwt.verify(token, this.refreshSecretKey) as {
-        userId: number;
-        jti: string;
-      };
-    } catch {
-      return null;
-    }
-  }
-
-  // For microservices - verify without database lookup
-  verifyTokenStateless(token: string): JWTPayload | null {
-    return this.verifyAccessToken(token);
-  }
-
-  // For high-security scenarios - check token revocation
-  async verifyTokenWithRevocation(token: string): Promise<JWTPayload | null> {
-    const payload = this.verifyAccessToken(token);
-    if (!payload) return null;
-
-    // Check if token is revoked (optional database lookup)
-    if (payload.jti) {
-      const isRevoked = await this.db.isTokenRevoked(payload.jti);
-      if (isRevoked) return null;
-    }
-
-    return payload;
-  }
-
-  async revokeToken(jti: string): Promise<void> {
-    await this.db.revokeToken(jti);
-  }
-}
-
-// =============================================================================
-// HYBRID SESSION MANAGER
-// =============================================================================
-export class HybridSessionManager {
-  constructor(
-    private db: DatabaseAdapter,
-    private jwtService: JWTService,
-  ) {}
-
-  // Traditional session creation
-  async createSession(userId: number): Promise<string> {
-    const sessionId = randomUUID();
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await this.db.createSession(userId, sessionId, expiresAt);
-    return sessionId;
-  }
-
-  // JWT-based session
-  async createJWTSession(
-    user: User,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    return this.jwtService.generateTokens(user);
-  }
-
-  async validateSession(sessionId: string): Promise<User | null> {
-    const session = await this.db.getSession(sessionId);
-    if (!session) return null;
-    return await this.db.getUserById(session.user_id);
-  }
-
-  async validateJWTSession(
-    token: string,
-    requireDbCheck = false,
-  ): Promise<User | null> {
-    const payload = requireDbCheck
-      ? await this.jwtService.verifyTokenWithRevocation(token)
-      : this.jwtService.verifyTokenStateless(token);
-
-    if (!payload) return null;
-
-    // For microservices: return user data from token
-    if (!requireDbCheck) {
-      return {
-        id: payload.userId,
-        username: payload.username,
-        email: "", // Not in token
-        created_at: new Date().toDateString(),
-        password_hash: "",
-      } as User;
-    }
-
-    // For traditional apps: fetch fresh user data
-    return await this.db.getUserById(payload.userId);
-  }
-
-  async refreshJWTTokens(
-    refreshToken: string,
-  ): Promise<{ accessToken: string; refreshToken: string } | null> {
-    const payload = this.jwtService.verifyRefreshToken(refreshToken);
-    if (!payload) return null;
-
-    const user = await this.db.getUserById(payload.userId);
-    if (!user) return null;
-
-    // Revoke old token
-    await this.jwtService.revokeToken(payload.jti);
-
-    return this.jwtService.generateTokens(user);
-  }
-
-  async destroySession(sessionId: string): Promise<void> {
-    await this.db.deleteSession(sessionId);
-  }
-
-  async destroyJWTSession(token: string): Promise<void> {
-    const payload = this.jwtService.verifyAccessToken(token);
-    if (payload?.jti) {
-      await this.jwtService.revokeToken(payload.jti);
-    }
-  }
-}
+import { JWTService } from "./jwt.ts";
+import { HybridSessionManager } from "./session.ts";
 
 // =============================================================================
 // ENHANCED AUTH SERVICE
@@ -207,6 +36,7 @@ export class AuthService {
         username: user.username,
         email: user.email,
         created_at: user.created_at,
+        role: user.role || [],
       },
     };
   }
@@ -263,6 +93,7 @@ export class AuthService {
       username: user.username,
       email: user.email,
       created_at: user.created_at,
+      role: user.role || [],
     };
   }
 
@@ -355,7 +186,10 @@ export function microserviceAuthMiddleware(jwtService: JWTService) {
     req.user = {
       id: payload.userId,
       username: payload.username,
-      role: payload.roles,
+      role: payload.roles || [],
+      email: "", // Not included in stateless token
+      created_at: new Date().toDateString(),
+      password_hash: "", // Not included in stateless token
     };
 
     next();
@@ -395,4 +229,3 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   }
   next();
 }
-
