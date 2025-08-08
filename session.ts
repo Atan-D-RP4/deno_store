@@ -7,11 +7,17 @@ import { JWTService } from "./jwt.ts";
 // =============================================================================
 // HYBRID SESSION MANAGER
 // =============================================================================
-export class HybridSessionManager {
+export class SessionManager {
   constructor(
     private db: DatabaseAdapter,
     private jwtService: JWTService,
   ) {}
+
+  async deleteExpiredSessions(): Promise<void> {
+    this.db.deleteExpiredSessions().catch((err) => {
+      console.error("Failed to delete expired sessions:", err);
+    });
+  }
 
   // Traditional session creation
   async createSession(userId: number): Promise<string> {

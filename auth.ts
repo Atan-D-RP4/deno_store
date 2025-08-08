@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { LoginRequest, RegisterRequest, User } from "./schema.ts";
 import { DatabaseAdapter } from "./db.ts";
 import { JWTService } from "./jwt.ts";
-import { HybridSessionManager } from "./session.ts";
+import { SessionManager } from "./session.ts";
 
 // =============================================================================
 // ENHANCED AUTH SERVICE
@@ -12,7 +12,7 @@ import { HybridSessionManager } from "./session.ts";
 export class AuthService {
   constructor(
     private db: DatabaseAdapter,
-    private sessionManager: HybridSessionManager,
+    private sessionManager: SessionManager,
     private jwtService: JWTService,
   ) {}
 
@@ -126,7 +126,7 @@ export class AuthService {
 // =============================================================================
 // FLEXIBLE MIDDLEWARE
 // =============================================================================
-export function hybridAuthMiddleware(
+export function AuthMiddleware(
   authService: AuthService,
   options: {
     preferJWT?: boolean;
