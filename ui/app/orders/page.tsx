@@ -1,16 +1,24 @@
 "use client";
 
+import React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/authContext.tsx";
-import Header from "@/components/header.tsx";
 import Link from "next/link";
+import { useAuth } from "@/components/authContext.tsx";
 
-import type { Order, OrderItem } from "../../../schema.ts";
+import Container from "@/components/layout/Container.tsx";
+import Spinner from "@/components/ui/Spinner.tsx";
+import { Card } from "@/components/ui/Card.tsx";
+import Badge from "@/components/ui/Badge.tsx";
+import EmptyState from "@/components/ui/EmptyState.tsx";
+
+import type { Order, OrderItem, Product } from "../../../schema.ts";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [productMap, setProductMap] = useState<Record<number, Product>>({});
+  const [productsLoading, setProductsLoading] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -25,9 +33,7 @@ export default function OrdersPage() {
       try {
         const response = await fetch("/api/orders");
         const result = await response.json();
-        if (result.success) {
-          setOrders(result.data);
-        }
+        if (result.success) setOrders(result.data);
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       } finally {
@@ -35,107 +41,160 @@ export default function OrdersPage() {
       }
     };
 
-    if (user) {
-      fetchOrders();
-    }
+    if (user) fetchOrders();
   }, [user]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  // Fetch referenced products after orders load (client-side effect)
+  useEffect(() => {
+    const loadProducts = async () => {
+      const ids = Array.from(
+        new Set(
+          orders.flatMap((o) => o.items.map((i) => i.product_id)),
+        ),
+      );
+      if (ids.length === 0) return;
+
+      setProductsLoading(true);
+      try {
+        const results = await Promise.all(
+          ids.map(async (id) => {
+            try {
+              const resp = await fetch(`/api/products/${id}`);
+              const json = await resp.json();
+              if (json?.success) return [id, json.data] as const;
+            } catch (e) {
+              console.error(`Failed to fetch product ${id}:`, e);
+            }
+            return null;
+          }),
+        );
+        const map: Record<number, Product> = {};
+        for (const entry of results) {
+          if (entry) {
+            const [id, prod] = entry;
+            map[id] = prod as Product;
+          }
+        }
+        setProductMap((prev) => ({ ...prev, ...map }));
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+
+    if (orders.length) loadProducts();
+  }, [orders]);
+
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+  const statusToColor = (
+    status: string,
+  ): "yellow" | "blue" | "purple" | "green" | "red" | "gray" => {
+    switch ((status || "").toLowerCase()) {
       case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "yellow";
       case "processing":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "blue";
       case "shipped":
-        return "bg-purple-100 text-purple-800 border-purple-200";
+        return "purple";
       case "delivered":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "green";
       case "cancelled":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "red";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "gray";
     }
   };
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100">
-        <Header />
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="inline-block w-10 h-10 border-4 border-gray-300 border-t-indigo-600 rounded-full animate-spin mb-4" />
-            <p className="text-gray-600">Loading orders...</p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 grid place-items-center">
+        <div className="text-center">
+          <Spinner />
+          <p className="text-gray-600 mt-4">Loading orders...</p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue -100">
-      <Header />
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Your Orders</h1>
-        {orders.length === 0
-          ? <p className="text-gray-600">You have no orders yet.</p>
-          : (
-            <div className="space-y-6">
-              {orders.map((order) => (
-                <div
-                  key={order.id}
-                  className="border rounded-lg p-6 bg-white shadow-sm"
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold">Order #{order.id}</h2>
-                    <span
-                      className={`px-3 py-1 text-sm font-medium rounded ${
-                        getStatusColor(order.status)
-                      }`}
-                    >
-                      {order.status}
-                    </span>
-                  </div>
-                  <p className="text-gray-500 mb-2">
-                    Placed on {formatDate(order.createdAt)}
-                  </p>
-                  <ul className="space-y-4">
-                    {order.items.map((item: OrderItem) => (
-                      <li key={item.id} className="flex justify-between">
-                        <span>{item.product.name} (x{item.quantity})</span>
-                        <span>${item.product.price.toFixed(2)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-4 border-t pt-4">
-                    <p className="text-gray-700 font-semibold">
-                      Total: ${order.total.toFixed(2)}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100">
+      <main className="mt-10">
+        <Container>
+          <h1 className="text-3xl font-bold mb-6">Your Orders</h1>
+          {orders.length === 0
+            ? (
+              <EmptyState
+                title="No orders yet"
+                description="When you place an order it will appear here."
+                actionHref="/products"
+                actionText="Browse products"
+                icon="📦"
+              />
+            )
+            : (
+              <div className="space-y-6">
+                {orders.map((order) => (
+                  <Card key={order.id} className="p-6">
+                    <div className="flex justify-between items-center mb-3">
+                      <h2 className="text-lg font-semibold">
+                        Order #{order.id}
+                      </h2>
+                      <Badge color={statusToColor(order.status)}>
+                        {order.status}
+                      </Badge>
+                    </div>
+                    <p className="text-gray-500 mb-2">
+                      Placed on {formatDate(order.created_at)}
                     </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        <Link
-          href="/"
-          className="mt-6 inline-block text-blue-600 hover:underline"
-        >
-          Back to Products
-        </Link>
-      </div>
+                    <ul className="space-y-2">
+                      {order.items.map((item: OrderItem) => {
+                        const product = productMap[item.product_id];
+                        return (
+                          <li
+                            key={item.id}
+                            className="flex justify-between text-sm"
+                          >
+                            <span>
+                              {product
+                                ? product.name
+                                : productsLoading
+                                ? "Loading…"
+                                : "Unknown product"} ({item.quantity})
+                            </span>
+                            <span>
+                              {product ? `${product.price}` : "—"}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <div className="mt-4 border-t pt-4">
+                      <p className="text-gray-700 font-semibold">
+                        Total: ${order.total_amount.toFixed(2)}
+                      </p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          <Link
+            href="/products"
+            className="mt-6 inline-block text-blue-600 hover:underline"
+          >
+            Back to Products
+          </Link>
+        </Container>
+      </main>
     </div>
   );
 }
+

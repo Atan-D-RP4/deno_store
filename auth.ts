@@ -5,6 +5,7 @@ import { LoginRequest, RegisterRequest, User } from "./schema.ts";
 import { DatabaseAdapter } from "./db.ts";
 import { JWTService } from "./jwt.ts";
 import { SessionManager } from "./session.ts";
+import process from "node:process";
 
 // =============================================================================
 // ENHANCED AUTH SERVICE
@@ -219,13 +220,20 @@ export function apiAuthMiddleware(authService: AuthService) {
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {
-    // API request without valid token
-    if (req.path.startsWith("/api/")) {
-      return res.status(401).json({ error: "Authentication required" });
+    // Determine if this is an API call. When used inside a router (e.g. app.use('/api', router)),
+    // req.path is relative (e.g. '/orders'), so use originalUrl/baseUrl checks instead.
+    const originalUrl = req.originalUrl || "";
+    const baseUrl = req.baseUrl || "";
+    const acceptsJson = (req.headers.accept || "").includes("application/json");
+    const isApi = originalUrl.startsWith("/api") || baseUrl.startsWith("/api") || acceptsJson;
+
+    if (isApi) {
+      return res.status(401).json({ success: false, error: "Authentication required" });
     }
-    // Web request without session
-    res.redirect("/login.html");
-    return;
+
+    // Non-API browser request: redirect to your Next.js app's login page
+    const nextBase = process.env.NEXT_BASE_URL || "http://localhost:3000"; // e.g. https://app.example.com
+    return res.redirect(302, `${nextBase}/login`);
   }
   next();
 }

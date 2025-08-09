@@ -6,13 +6,14 @@
   "nodeModulesDir": "auto",
   "workspace": ["./ui/"],
   "tasks": {
-    "dev": "deno run --allow-all --watch main.ts"
+    "dev": "deno run --allow-all --watch main.ts",
+    "dev:ui": "cd ./ui && deno task dev",
+    "dev:full": "deno task dev & deno task dev:ui &"
   },
   "imports": {
     "@types/bcrypt": "npm:@types/bcrypt@^6.0.0",
     "@types/express": "npm:@types/express@^5.0.3",
     "@types/jsonwebtoken": "npm:@types/jsonwebtoken@^9.0.10",
-    "@types/node": "npm:@types/node@^24.1.0",
     "@std/assert": "jsr:@std/assert@1",
     "bcrypt": "npm:bcrypt@^6.0.0",
     "cookie-parser": "npm:cookie-parser@^1.4.7",

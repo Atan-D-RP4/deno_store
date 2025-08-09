@@ -6,11 +6,48 @@ import sqlite3 from "sqlite3";
 
 import { Order, Product, Session, User } from "./schema.ts";
 
-interface Transaction {
-  run: (sql: string, params?: any[]) => Promise<ISqlite.RunResult>; // Run a SQL command
-  begin: () => Promise<void>;
-  commit: () => Promise<void>;
-  rollback: () => Promise<void>;
+// Minimal transaction wrapper for the `sqlite` + `sqlite3` combo.
+// The sqlite package doesn't expose a typed transaction interface, so we provide
+// a tiny helper that:
+// - Starts a transaction immediately (BEGIN IMMEDIATE)
+// - Ensures writes go through the transaction
+// - Commits or rolls back safely
+class Transaction {
+  private active = false;
+  constructor(
+    private db: sqlite.Database<sqlite3.Database, sqlite3.Statement>,
+  ) {}
+
+  get in_transaction(): boolean {
+    return this.active;
+  }
+
+  async begin(): Promise<void> {
+    if (this.active) throw new Error("Transaction already started");
+    // IMMEDIATE acquires a RESERVED lock right away, avoiding later busy errors
+    await this.db.exec("BEGIN IMMEDIATE");
+    this.active = true;
+  }
+
+  async run(sql: string, params?: any[]): Promise<ISqlite.RunResult> {
+    if (!this.active) {
+      throw new Error("Cannot run SQL command outside of a transaction");
+    }
+    return this.db.run(sql, params);
+  }
+
+  async commit(): Promise<void> {
+    if (!this.active) throw new Error("No transaction to commit");
+    console.log("Committing transaction");
+    await this.db.exec("COMMIT");
+    this.active = false;
+  }
+
+  async rollback(): Promise<void> {
+    if (!this.active) return; // no-op if not active
+    await this.db.exec("ROLLBACK");
+    this.active = false;
+  }
 }
 
 export interface DatabaseAdapter {
@@ -149,13 +186,9 @@ export class SqliteAdapter implements DatabaseAdapter {
   }
 
   async transaction(): Promise<Transaction> {
-    const transaction: Transaction = {
-      run: (sql, params) => this.db.run(sql, params),
-      begin: () => this.db.exec("BEGIN TRANSACTION"),
-      commit: () => this.db.exec("COMMIT"),
-      rollback: () => this.db.exec("ROLLBACK"),
-    };
-    return transaction;
+    const tx = new Transaction(this.db);
+    await tx.begin();
+    return tx;
   }
 
   async createUser(
@@ -232,7 +265,7 @@ export class SqliteAdapter implements DatabaseAdapter {
   async cleanupExpiredTokens(): Promise<void> {
     await this.db.run(
       "DELETE FROM revoked_tokens WHERE expires_at < ?",
-      [new Date()],
+      [new Date().toISOString()],
     );
   }
 
@@ -248,8 +281,36 @@ export class SqliteAdapter implements DatabaseAdapter {
     userId: number,
     items: { productId: number; quantity: number }[],
   ): Promise<Order> {
-    // TODO: Implement order creation logic
-    throw new Error("Method not implemented.");
+    const transaction = await this.transaction();
+    try {
+      const { lastID: orderId } = await transaction.run(
+        `INSERT INTO orders (user_id, total_amount, status) VALUES (?, ?, ?)`,
+        [userId, 0, "pending"],
+      );
+      if (!orderId) throw new Error("Failed to create order");
+      let totalAmount = 0;
+      for (const item of items) {
+        // Reads will still occur under the same connection/transaction
+        const product = await this.getProductById(item.productId);
+        if (!product) throw new Error(`Product ${item.productId} not found`);
+        const price = product.price;
+        totalAmount += price * item.quantity;
+        await transaction.run(
+          `INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)`,
+          [orderId, item.productId, item.quantity, price],
+        );
+      }
+      await transaction.run(
+        `UPDATE orders SET total_amount = ? WHERE id = ?`,
+        [totalAmount, orderId],
+      );
+      await transaction.commit();
+      const order = await this.getOrderById(orderId);
+      return order!;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   async getOrderById(id: number): Promise<Order | null> {

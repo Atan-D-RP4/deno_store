@@ -1,28 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "paths": {
-      "@/*": "./*",
-      "@/components/*": ["components/*"]
-    },
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": false,
-    "noEmit": true,
-    "incremental": true,
-    "module": "esnext",
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "plugins": [
-      { "name": "next" }
-    ]
+    "strict": false
   },
 
   "include": [
@@ -42,9 +25,10 @@
   },
   "imports": {
     "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.11",
-    "@types/node": "npm:@types/node@^24.2.0",
+    "@types/node": "npm:@types/node@^24.2.1",
     "@types/react": "npm:@types/react@^19.1.9",
     "@types/react-dom": "npm:@types/react-dom@^19.1.7",
+
     "next": "npm:next@^15.4.6",
     "react": "npm:react@^19.1.1",
     "react-dom": "npm:react-dom@^19.1.1",

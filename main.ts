@@ -1,14 +1,11 @@
 // main.ts
 import express, { Request, Response } from "express";
 import cookieParser from "cookie-parser";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
 import process from "node:process";
 
 // Define __dirname for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 import { LoginSchema, RegisterSchema, User } from "./schema.ts";
 
@@ -67,14 +64,13 @@ async function startServer() {
 
   app.use(express.json());
   app.use(cookieParser());
-  app.use(express.static(path.join(__dirname, "public")));
 
   // =============================================================================
   // WEB ROUTES (Cookie-based sessions)
   // =============================================================================
 
-  // Web authentication middleware
-  app.use(AuthMiddleware(authService, { preferJWT: false }));
+  // Attach auth middleware for web/API routes to populate req.user from cookie session
+  apiRoutes.use(AuthMiddleware(authService, { preferJWT: false }));
 
   // Web API Routes (supports both sessions and JWT)
   apiRoutes.post("/register", async (req: Request, res: Response) => {

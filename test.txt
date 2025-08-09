@@ -1,0 +1,29 @@
+ 1. Register (optional; skip if user already exists) curl -i -X POST http://localhost:8000/api/register \  -H 'Content-Type: application/json' \  -d
+    '{"username":"newuser","password":"password","email":"newuser@example.com"}'
+ 2. Login (captures session cookie) curl -i -c cookies.txt -X POST http://localhost:8000/api/login \  -H 'Content-Type: application/json' \  -d
+    '{"username":"chaitanya5","password":"password"}'
+ 3. Get current user curl -i -b cookies.txt http://localhost:8000/api/me
+ 4. List products curl -i http://localhost:8000/api/products
+ 5. Get product by id (example: 1) curl -i http://localhost:8000/api/products/1
+ 6. Create order (authenticated; example items) curl -i -b cookies.txt -X POST http://localhost:8000/api/orders \  -H 'Content-Type: application/json' \  -d
+    '{"items":[{"productId":1,"quantity":2},{"productId":2,"quantity":1}]}'
+ 7. List my orders (authenticated) curl -i -b cookies.txt http://localhost:8000/api/orders
+ 8. Logout (authenticated) curl -i -b cookies.txt -X POST http://localhost:8000/api/logout
+
+MOBILE/JWT API (/api/mobile) – uses Bearer accessToken
+
+ 1. Login (get JWTs) TOKENS=$(curl -s -X POST http://localhost:8000/api/mobile/login \  -H 'Content-Type: application/json' \  -d
+    '{"username":"chaitanya5","password":"password"}')
+ 2. Extract tokens ACCESS_TOKEN=$(echo "$TOKENS" | jq -r '.data.accessToken') REFRESH_TOKEN=$(echo "$TOKENS" | jq -r '.data.refreshToken') echo
+    "ACCESS_TOKEN=$ACCESS_TOKEN" echo "REFRESH_TOKEN=$REFRESH_TOKEN"
+ 3. Get current user curl -i -H "Authorization: Bearer $ACCESS_TOKEN" \  http://localhost:8000/api/mobile/me
+ 4. List products curl -i -H "Authorization: Bearer $ACCESS_TOKEN" \  http://localhost:8000/api/mobile/products
+ 5. Get product by id (example: 1) curl -i -H "Authorization: Bearer $ACCESS_TOKEN" \  http://localhost:8000/api/mobile/products/1
+ 6. Create order curl -i -H "Authorization: Bearer $ACCESS_TOKEN" \  -H 'Content-Type: application/json' \  -X POST http://localhost:8000/api/mobile/orders \  -d
+    '{"items":[{"productId":1,"quantity":1},{"productId":2,"quantity":3}]}'
+ 7. List my orders curl -i -H "Authorization: Bearer $ACCESS_TOKEN" \  http://localhost:8000/api/mobile/orders
+ 8. Refresh tokens (use refreshToken) TOKENS2=$(curl -s -X POST http://localhost:8000/api/mobile/refresh \  -H 'Content-Type: application/json' \  -d
+    "{\"refreshToken\":\"$REFRESH_TOKEN\"}") NEW_ACCESS_TOKEN=$(echo "$TOKENS2" | jq -r '.data.accessToken') NEW_REFRESH_TOKEN=$(echo "$TOKENS2" | jq -r
+    '.data.refreshToken') echo "NEW_ACCESS_TOKEN=$NEW_ACCESS_TOKEN" echo "NEW_REFRESH_TOKEN=$NEW_REFRESH_TOKEN"
+ 9. Logout (JWT revoke) curl -i -X POST -H "Authorization: Bearer $ACCESS_TOKEN" \  http://localhost:8000/api/mobile/logout
+

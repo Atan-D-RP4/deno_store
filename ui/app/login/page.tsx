@@ -4,6 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/authContext.tsx";
 import React from "react";
+import Container from "@/components/layout/Container.tsx";
+import Button from "@/components/ui/Button.tsx";
+import Input from "@/components/ui/Input.tsx";
+import Alert from "@/components/ui/Alert.tsx";
 
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
@@ -54,7 +58,6 @@ export default function LoginPage() {
       showAlert("Registration successful! You can now sign in.", "success");
       setTimeout(() => {
         setActiveTab("signin");
-        // Pre-fill username in login form
         const loginForm = document.getElementById(
           "login-form",
         ) as HTMLFormElement;
@@ -73,167 +76,159 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-5">
-      <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 shadow-2xl w-full max-w-md border border-white/20">
-        <div className="text-center mb-8">
-          <h1 className="text-gray-800 text-3xl font-semibold mb-2">Welcome</h1>
-          <p className="text-gray-600 text-sm">
-            Sign in to access your secure dashboard
-          </p>
-        </div>
-
-        <div className="flex mb-8 bg-gray-100 rounded-xl p-1">
-          <button
-            type="submit"
-            className={`flex-1 p-3 text-center rounded-lg cursor-pointer transition-all duration-300 font-medium ${
-              activeTab === "signin"
-                ? "bg-white text-gray-800 shadow-md"
-                : "text-gray-600 hover:text-gray-800"
-            }`}
-            onClick={() => setActiveTab("signin")}
-          >
-            Sign In
-          </button>
-          <button
-            type="submit"
-            className={`flex-1 p-3 text-center rounded-lg cursor-pointer transition-all duration-300 font-medium ${
-              activeTab === "signup"
-                ? "bg-white text-gray-800 shadow-md"
-                : "text-gray-600 hover:text-gray-800"
-            }`}
-            onClick={() => setActiveTab("signup")}
-          >
-            Sign Up
-          </button>
-        </div>
-
-        {alert && (
-          <div
-            className={`p-3 rounded-lg mb-5 text-sm ${
-              alert.type === "error"
-                ? "bg-red-50 text-red-700 border border-red-200"
-                : "bg-green-50 text-green-700 border border-green-200"
-            }`}
-          >
-            {alert.message}
+      <Container>
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 shadow-2xl w-full max-w-md border border-white/20 mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-gray-800 text-3xl font-semibold mb-2">
+              Welcome
+            </h1>
+            <p className="text-gray-600 text-sm">
+              Sign in to access your secure dashboard
+            </p>
           </div>
-        )}
 
-        {activeTab === "signin"
-          ? (
-            <form id="login-form" onSubmit={handleLogin} className="space-y-5">
-              <div>
-                <label
-                  htmlFor="login-username"
-                  className="block mb-2 text-gray-800 font-medium text-sm"
-                >
-                  Username
-                </label>
-                <input
-                  type="text"
-                  id="login-username"
-                  name="username"
-                  required
-                  className="w-full p-4 border-2 border-gray-200 rounded-xl text-base transition-all duration-300 bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="login-password"
-                  className="block mb-2 text-gray-800 font-medium text-sm"
-                >
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="login-password"
-                  name="password"
-                  required
-                  className="w-full p-4 border-2 border-gray-200 rounded-xl text-base transition-all duration-300 bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full p-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 mb-5 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/30 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
-              >
-                {loading
-                  ? (
-                    <span className="inline-block w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                  )
-                  : (
-                    "Sign In"
-                  )}
-              </button>
-            </form>
-          )
-          : (
-            <form onSubmit={handleRegister} className="space-y-5">
-              <div>
-                <label
-                  htmlFor="register-username"
-                  className="block mb-2 text-gray-800 font-medium text-sm"
-                >
-                  Username
-                </label>
-                <input
-                  type="text"
-                  id="register-username"
-                  name="username"
-                  required
-                  minLength={3}
-                  maxLength={50}
-                  className="w-full p-4 border-2 border-gray-200 rounded-xl text-base transition-all duration-300 bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="register-email"
-                  className="block mb-2 text-gray-800 font-medium text-sm"
-                >
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="register-email"
-                  name="email"
-                  required
-                  className="w-full p-4 border-2 border-gray-200 rounded-xl text-base transition-all duration-300 bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="register-password"
-                  className="block mb-2 text-gray-800 font-medium text-sm"
-                >
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="register-password"
-                  name="password"
-                  required
-                  minLength={6}
-                  maxLength={100}
-                  className="w-full p-4 border-2 border-gray-200 rounded-xl text-base transition-all duration-300 bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full p-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 mb-5 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/30 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
-              >
-                {loading
-                  ? (
-                    <span className="inline-block w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                  )
-                  : (
-                    "Sign Up"
-                  )}
-              </button>
-            </form>
+          <div className="flex mb-8 bg-gray-100 rounded-xl p-1">
+            <button
+              type="button"
+              className={`flex-1 p-3 text-center rounded-lg cursor-pointer transition-all duration-300 font-medium ${
+                activeTab === "signin"
+                  ? "bg-white text-gray-800 shadow-md"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+              onClick={() => setActiveTab("signin")}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              className={`flex-1 p-3 text-center rounded-lg cursor-pointer transition-all duration-300 font-medium ${
+                activeTab === "signup"
+                  ? "bg-white text-gray-800 shadow-md"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+              onClick={() => setActiveTab("signup")}
+            >
+              Sign Up
+            </button>
+          </div>
+
+          {alert && (
+            <Alert type={alert.type} className="mb-5 text-sm">
+              {alert.message}
+            </Alert>
           )}
-      </div>
+
+          {activeTab === "signin"
+            ? (
+              <form
+                id="login-form"
+                onSubmit={handleLogin}
+                className="space-y-5"
+              >
+                <div>
+                  <label
+                    htmlFor="login-username"
+                    className="block mb-2 text-gray-800 font-medium text-sm"
+                  >
+                    Username
+                  </label>
+                  <Input
+                    type="text"
+                    id="login-username"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="login-password"
+                    className="block mb-2 text-gray-800 font-medium text-sm"
+                  >
+                    Password
+                  </label>
+                  <Input
+                    type="password"
+                    id="login-password"
+                    name="password"
+                    required
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full mb-5"
+                >
+                  {loading
+                    ? (
+                      <span className="inline-block w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                    )
+                    : "Sign In"}
+                </Button>
+              </form>
+            )
+            : (
+              <form onSubmit={handleRegister} className="space-y-5">
+                <div>
+                  <label
+                    htmlFor="register-username"
+                    className="block mb-2 text-gray-800 font-medium text-sm"
+                  >
+                    Username
+                  </label>
+                  <Input
+                    type="text"
+                    id="register-username"
+                    name="username"
+                    required
+                    minLength={3}
+                    maxLength={50}
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="register-email"
+                    className="block mb-2 text-gray-800 font-medium text-sm"
+                  >
+                    Email
+                  </label>
+                  <Input
+                    type="email"
+                    id="register-email"
+                    name="email"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="register-password"
+                    className="block mb-2 text-gray-800 font-medium text-sm"
+                  >
+                    Password
+                  </label>
+                  <Input
+                    type="password"
+                    id="register-password"
+                    name="password"
+                    required
+                    minLength={6}
+                    maxLength={100}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full mb-5"
+                >
+                  {loading
+                    ? (
+                      <span className="inline-block w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                    )
+                    : "Sign Up"}
+                </Button>
+              </form>
+            )}
+        </div>
+      </Container>
     </div>
   );
 }
-

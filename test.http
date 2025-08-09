@@ -1,0 +1,40 @@
+POST http://localhost:8000/api/register
+content-type: application/json
+
+{"username":"newuser","password":"password","email":"newuser@example.com"}
+
+###
+
+POST http://localhost:8000/api/login
+content-type: application/json
+
+{"username":"chaitanya5","password":"password"}
+
+###
+
+POST http://localhost:8000/api/orders
+content-type: application/json
+
+{"items":[{"productId":1,"quantity":2},{"productId":2,"quantity":1}]}
+
+
+###
+GET http://localhost:8000/api/orders
+content-type: application/json
+cookie: session_id=0a6ca6fd-314c-4eb3-ad9e-498bd7108d65; Max-Age=86400; Path=/; Expires=Sun, 10 Aug 2025 15:12:28 GMT; HttpOnly; SameSite=Strict
+
+{ "user": {
+      "id": 1,
+      "username": "chaitanya5",
+      "email": "chaitanyarp5@gmail.com",
+      "created_at": "2025-08-07 17:14:15",
+      "role": []
+    }
+}
+
+###
+GET http://localhost:8000/api/products
+content-type: application/json
+
+
+###

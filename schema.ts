@@ -12,7 +12,7 @@ export const LoginSchema = z.object({
 export const RegisterSchema = z.object({
   username: z.string().min(3).max(50),
   password: z.string().min(6).max(100),
-  email: z.string().email(),
+  email: z.email(),
 });
 
 export type LoginRequest = z.infer<typeof LoginSchema>;
