@@ -24,7 +24,7 @@ export interface User {
   email: string;
   password_hash: string;
   created_at: string;
-  role: "user" | "admin" | "guest"[];
+  role: "user" | "admin" | "guest";
 }
 
 export interface Session {

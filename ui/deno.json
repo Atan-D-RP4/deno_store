@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": [ "dom", "dom.iterable", "esnext" ],
     "strict": false
   },
 
@@ -35,6 +31,9 @@
     "tailwindcss": "npm:tailwindcss@^4.1.11",
 
     "@/components/": "./components/",
-    "@/*": "./*"
+    "@/*": "./*",
+
+    // Can't really get rid of this. Next is a little bitch like that
+    "typescript": "npm:typescript@^5.9.2"
   }
 }

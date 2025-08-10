@@ -91,7 +91,7 @@ export class SqliteAdapter implements DatabaseAdapter {
   async connect(): Promise<void> {
     this.db = await open({ filename: this.dbPath, driver: sqlite3.Database });
 
-    this.db.run(`
+    await this.db.run(`
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
@@ -101,7 +101,7 @@ export class SqliteAdapter implements DatabaseAdapter {
       )
     `);
 
-    this.db.run(`
+    await this.db.run(`
       CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,
         user_id INTEGER NOT NULL,
@@ -119,11 +119,11 @@ export class SqliteAdapter implements DatabaseAdapter {
       );
     `);
 
-    this.db.run(
+    await this.db.run(
       `CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)`,
     );
 
-    this.db.run(
+    await this.db.run(
       `CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)`,
     );
 

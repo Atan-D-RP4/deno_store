@@ -28,7 +28,7 @@ cookie: session_id=0a6ca6fd-314c-4eb3-ad9e-498bd7108d65; Max-Age=86400; Path=/; 
       "username": "chaitanya5",
       "email": "chaitanyarp5@gmail.com",
       "created_at": "2025-08-07 17:14:15",
-      "role": []
+      "role": "user"
     }
 }
 

@@ -34,7 +34,11 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products");
+        const response = await fetch("/api/products", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
         const result = await response.json();
         if (result.success) setProducts(result.data);
       } catch (error) {

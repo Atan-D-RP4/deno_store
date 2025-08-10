@@ -1,5 +1,6 @@
 // main.ts
 import express, { Request, Response } from "express";
+import cors from "cors";
 import cookieParser from "cookie-parser";
 import process from "node:process";
 
@@ -31,7 +32,7 @@ declare global {
       sessionId?: string;
       accessToken?: string;
       authType?: "session" | "jwt";
-      roles?: "user" | "admin" | "guest"[]; // Optional roles for authorization
+      roles?: "user" | "admin" | "guest"; // Optional roles for authorization
     }
   }
 }
@@ -41,9 +42,9 @@ async function startServer() {
   await db.connect();
 
   // JWT configuration
-  const JWT_SECRET = process.env.JWT_SECRET ||
+  const JWT_SECRET = Deno.env.get("JWT_SECRET") ||
     "your-super-secret-jwt-key-change-in-production";
-  const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET ||
+  const JWT_REFRESH_SECRET = Deno.env.get("JWT_REFRESH_SECRET") ||
     "your-super-secret-refresh-key-change-in-production";
 
   // Initialize services
@@ -57,6 +58,7 @@ async function startServer() {
   }, 60 * 60 * 1000);
 
   const PORT = process.env.PORT || 8000;
+  const UI_ORIGIN = Deno.env.get("UI_ORIGIN") || "http://localhost:3000"; // change in prod
 
   const app = express();
   const apiRoutes = express.Router();
@@ -64,6 +66,15 @@ async function startServer() {
 
   app.use(express.json());
   app.use(cookieParser());
+
+  app.use(
+    cors({
+      origin: UI_ORIGIN, // must match the Next.js app origin exactly
+      credentials: true, // allow cookies / Authorization headers
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  );
 
   // =============================================================================
   // WEB ROUTES (Cookie-based sessions)
@@ -79,7 +90,8 @@ async function startServer() {
       const result = await authService.register(data);
       res.status(201).json({ success: true, data: result });
     } catch (error) {
-      res.status(400).json({ success: false, error: error.message });
+      const err = error as Error;
+      res.status(400).json({ success: false, error: err.message });
     }
   });
 
@@ -98,20 +110,21 @@ async function startServer() {
         data: { user: result.user },
       });
     } catch (error) {
-      res.status(401).json({ success: false, error: error.message });
+      const err = error as Error;
+      res.status(401).json({ success: false, error: err.message });
     }
   });
 
-  apiRoutes.post("/logout", (req: Request, res: Response) => {
+  apiRoutes.post("/logout", async (req: Request, res: Response) => {
     const sessionId = req.sessionId;
     if (sessionId) {
-      authService.logout(sessionId);
+      await authService.logout(sessionId);
     }
     res.clearCookie("session_id");
     res.json({ success: true });
   });
 
-  apiRoutes.get("/me", requireAuth, (req: Request, res: Response) => {
+  apiRoutes.get("/me", requireAuth, async (req: Request, res: Response) => {
     const user = req.user;
     if (!user) {
       return res.status(401).json({ success: false, error: "Unauthorized" });
@@ -134,7 +147,13 @@ async function startServer() {
   });
 
   apiRoutes.get("/products/:id", async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
+    const id = Number.parseInt(req.params.id);
+    if (Number.isNaN(id) || Number.isFinite(id) === false || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid product ID",
+      });
+    }
     const product = await db.getProductById(id);
     if (product) {
       res.json({ success: true, data: product });
@@ -162,7 +181,8 @@ async function startServer() {
         const order = await db.createOrder(user.id, items);
         res.status(201).json({ success: true, data: order });
       } catch (error) {
-        res.status(400).json({ success: false, error: error.message });
+        const err = error as Error;
+        res.status(400).json({ success: false, error: err.message });
       }
     },
   );
@@ -182,8 +202,6 @@ async function startServer() {
   // =============================================================================
 
   // Mobile API Routes (JWT only)
-  mobileApiRoutes.use(apiAuthMiddleware(authService));
-
   mobileApiRoutes.post("/login", async (req: Request, res: Response) => {
     try {
       const data = LoginSchema.parse(req.body);
@@ -193,7 +211,8 @@ async function startServer() {
         data: result,
       });
     } catch (error) {
-      res.status(401).json({ success: false, error: error.message });
+      const err = error as Error;
+      res.status(401).json({ success: false, error: err.message });
     }
   });
 
@@ -217,9 +236,13 @@ async function startServer() {
 
       res.json({ success: true, data: tokens });
     } catch (error) {
-      res.status(401).json({ success: false, error: error.message });
+      const err = error as Error;
+      res.status(401).json({ success: false, error: err.message });
     }
   });
+
+  // Apply JWT auth middleware to mobile API routes
+  mobileApiRoutes.use(apiAuthMiddleware(authService));
 
   mobileApiRoutes.post("/logout", async (req: Request, res: Response) => {
     try {
@@ -229,7 +252,8 @@ async function startServer() {
       }
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+      const err = error as Error;
+      res.status(500).json({ success: false, error: err.message });
     }
   });
 
@@ -280,7 +304,8 @@ async function startServer() {
       const order = await db.createOrder(user.id, items);
       res.status(201).json({ success: true, data: order });
     } catch (error) {
-      res.status(400).json({ success: false, error: error.message });
+      const err = error as Error;
+      res.status(400).json({ success: false, error: err.message });
     }
   });
 

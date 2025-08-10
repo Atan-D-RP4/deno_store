@@ -114,6 +114,7 @@ export default function CartPage() {
 
       const response = await fetch("/api/orders", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items: orderItems }),
       });

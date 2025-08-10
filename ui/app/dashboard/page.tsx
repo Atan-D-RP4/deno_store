@@ -61,7 +61,11 @@ export default function DashboardPage() {
 
   const handleTestAPI = async () => {
     try {
-      const response = await fetch("/api/me");
+      const response = await fetch("/api/me", {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
       const result = await response.json();
       if (result.success) {
         showAlert("API test successful! Your session is valid.", "success");

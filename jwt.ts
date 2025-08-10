@@ -9,7 +9,7 @@ import { DatabaseAdapter } from "./db.ts";
 export interface JWTPayload {
   userId: number;
   username: string;
-  roles?: "user" | "admin" | "guest"[]; // Optional roles for authorization
+  roles?: "user" | "admin" | "guest"; // Optional roles for authorization
   iat: number;
   exp: number;
   jti?: string; // JWT ID for revocation
@@ -30,7 +30,7 @@ export class JWTService {
       {
         userId: user.id,
         username: user.username,
-        roles: user.role || [],
+        roles: user.role || "guest",
         jti: tokenId,
       },
       this.secretKey,

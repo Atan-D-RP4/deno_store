@@ -31,7 +31,11 @@ export default function OrdersPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch("/api/orders");
+        const response = await fetch("/api/orders", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
         const result = await response.json();
         if (result.success) setOrders(result.data);
       } catch (error) {
@@ -197,4 +201,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-

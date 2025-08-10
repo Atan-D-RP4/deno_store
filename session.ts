@@ -1,3 +1,4 @@
+// @ts-types = "npm:@types/node;;
 import { randomUUID } from "node:crypto";
 
 import { User } from "./schema.ts";
@@ -14,7 +15,7 @@ export class SessionManager {
   ) {}
 
   async deleteExpiredSessions(): Promise<void> {
-    this.db.deleteExpiredSessions().catch((err) => {
+    await this.db.deleteExpiredSessions().catch((err) => {
       console.error("Failed to delete expired sessions:", err);
     });
   }
@@ -28,9 +29,9 @@ export class SessionManager {
   }
 
   // JWT-based session
-  async createJWTSession(
+  createJWTSession(
     user: User,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): { accessToken: string; refreshToken: string } {
     return this.jwtService.generateTokens(user);
   }
 

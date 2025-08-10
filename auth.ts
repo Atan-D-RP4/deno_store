@@ -37,7 +37,7 @@ export class AuthService {
         username: user.username,
         email: user.email,
         created_at: user.created_at,
-        role: user.role || [],
+        role: user.role || "user",
       },
     };
   }
@@ -63,7 +63,7 @@ export class AuthService {
     refreshToken: string;
   }> {
     const user = await this.authenticateUser(data);
-    const tokens = await this.sessionManager.createJWTSession(user);
+    const tokens = this.sessionManager.createJWTSession(user);
 
     return {
       user: this.sanitizeUser(user),
@@ -94,7 +94,7 @@ export class AuthService {
       username: user.username,
       email: user.email,
       created_at: user.created_at,
-      role: user.role || [],
+      role: user.role || "user",
     };
   }
 
@@ -187,7 +187,7 @@ export function microserviceAuthMiddleware(jwtService: JWTService) {
     req.user = {
       id: payload.userId,
       username: payload.username,
-      role: payload.roles || [],
+      role: payload.roles || "user",
       email: "", // Not included in stateless token
       created_at: new Date().toDateString(),
       password_hash: "", // Not included in stateless token
@@ -225,10 +225,14 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     const originalUrl = req.originalUrl || "";
     const baseUrl = req.baseUrl || "";
     const acceptsJson = (req.headers.accept || "").includes("application/json");
-    const isApi = originalUrl.startsWith("/api") || baseUrl.startsWith("/api") || acceptsJson;
+    const isApi = originalUrl.startsWith("/api") ||
+      baseUrl.startsWith("/api") || acceptsJson;
 
     if (isApi) {
-      return res.status(401).json({ success: false, error: "Authentication required" });
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
     }
 
     // Non-API browser request: redirect to your Next.js app's login page
